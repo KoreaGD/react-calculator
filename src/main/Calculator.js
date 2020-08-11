@@ -25,7 +25,31 @@ export default class Calculator extends Component {
         this.setState({ ...initialState })
     }
     setOperation(operation) {
-        console.log(operation)
+        if (this.state.current === 0) {
+            this.setState({ operation: operation, current: 1, clearDisplay: true })
+            if(this.state.clearDisplay) this.clearMemory();
+        } else {
+            const equals = operation === '=';
+            const currentOperation = this.state.operation;
+            
+            const values = [...this.state.values];
+            console.log(values ,currentOperation)
+            try {
+                values[0] = eval(`${values[0]} ${currentOperation} ${values[1]}`)
+            } catch (error) {
+                values[0] = this.state.values[0]
+            }
+
+            values[1] = 0;
+
+            this.setState({
+                displayValue: values[0],
+                operation: equals ? null : operation,
+                current: 0,
+                clearDisplay: !equals,
+                values
+            })
+        }
     }
     addDigit(number) {
         if (number === '.' && this.state.displayValue.includes('.')) {
@@ -38,11 +62,12 @@ export default class Calculator extends Component {
         const displayValue = currentValue + number
         this.setState({ displayValue, clearDisplay: false })
 
-        if (n !== '.') {
+        if (number !== '.') {
             const i = this.state.current;
             const newValue = parseFloat(displayValue);
             const values = [...this.state.values]
             values[i] = newValue;
+            this.setState({ values })
         }
     }
     render() {
@@ -81,7 +106,8 @@ export default class Calculator extends Component {
                     click={this.addDigit} double />
                 <Button label="."
                     click={this.addDigit} />
-                <Button label="=" operation />
+                <Button label="="
+                    click={this.setOperation} operation />
             </div>
         )
     }
